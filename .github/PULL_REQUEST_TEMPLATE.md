@@ -4,8 +4,8 @@
 
 ## Linked artifacts
 
-- Issue: 
-- ADRs affected or added: 
+- Issue:
+- ADRs affected or added:
 - OpenSpec change: (or `no-spec:` with justification why no spec is touched)
 
 ## Affected security assumptions
