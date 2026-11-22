@@ -2,29 +2,52 @@
 
 **Secure cloud infrastructure operations for AI coding agents.**
 
-> Project status: concept and security design. No production-ready implementation exists yet.
+> **Status:** Concept and security design. There is no production-ready implementation yet.
 
-Kipfer lets an AI agent request cloud resources without giving it cloud credentials. A local trusted executor validates requests, presents an infrastructure plan, and requires user approval and fresh browser authentication before each privileged operation.
+Kipfer lets AI agents request cloud resources **without receiving cloud credentials**. A local trusted executor checks the request, presents the exact plan, and asks for owner approval and Google browser authorization before each privileged operation.
+
+Kipfer starts with **Google Cloud**. The architecture is agent-agnostic and can support other cloud providers later.
+
+## User experience
+
+1. Ask an agent to create cloud resources or estimate hosting costs.
+2. Review the selected GCP project, resource plan, IAM permissions, API enablements, and expected cost in Kipfer.
+3. Sign in with **Kipfer's Google OAuth Desktop App** in your system browser. No local `gcloud` setup is required.
+4. **Approve the exact plan separately** from Google OAuth consent.
+5. The local executor bootstraps or uses a limited deployment service account and runs the approved operation.
+6. Temporary credentials are discarded. The next privileged change needs a new browser flow and approval.
+
+**Important:** Google OAuth scopes do not restrict a user token to one GCP project. Kipfer must enforce project scope through restricted cloud IAM and the trusted executor. This is a design requirement, not a verified security guarantee yet.
 
 ## Core principles
 
-- Start with Google Cloud. Add other cloud providers later.
-- Use a local trusted executor. Do not give cloud tokens to the agent.
-- Do not store OAuth refresh tokens or service account keys.
-- Ask the user to approve each infrastructure plan before execution.
-- Grant only the required permissions in one selected cloud project.
-- Limit cloud-side access grants to 10 days. Do not renew them automatically.
-- Let users revoke grants early without deleting deployed resources.
-- Make agent sandboxing the user's responsibility. Kipfer does not provide a sandbox in the MVP.
+- The AI agent never receives cloud tokens.
+- The trusted executor runs locally and uses typed, allowlisted operations.
+- Do not store OAuth refresh tokens, access tokens, or service-account JSON keys.
+- Require owner approval and interactive browser authorization for **each** privileged operation.
+- Limit deployment IAM grants to **10 days** and do not renew them automatically.
+- Use least-privilege roles in one selected GCP project.
+- Support early revocation without deleting deployed resources.
+- Keep application runtime identities separate from deployment identities.
+- The **user must isolate the agent** from the browser and executor. Kipfer does not include a sandbox in the MVP.
+- Do not promise a hard monthly billing limit from cost estimates.
 
-## Security scope
+## Architecture documents
 
-The user must isolate the agent from the trusted executor, the browser session, and other credentials on the machine. Kipfer cannot guarantee credential isolation if an unrestricted agent has access to the same operating system session.
+- [Product concept](docs/CONCEPT.md)
+- [ADR-0001 — Local Trusted Executor and Temporary Browser Bootstrap](docs/adr/ADR-0001-local-executor-bootstrap.md)
+- [ADR-0002 — Browser Authorization for Every Privileged Operation](docs/adr/ADR-0002-per-operation-browser-authorization.md)
+- [ADR-0003 — Ephemeral Credentials and User-Managed Agent Isolation](docs/adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md)
+- [ADR-0004 — Google OAuth Desktop Application](docs/adr/ADR-0004-google-oauth-application.md)
 
-## Next steps
+## Security and MVP scope
 
-Document the approved architecture decisions. Then validate the GCP bootstrap, IAM permission scope, approval flow, and credential handling in a security-focused proof of concept.
+The local executor, browser approval, effective IAM controls, and revocation procedure are **not implemented or validated yet**. Do not use this design with production cloud permissions.
 
-## Documentation language
+A standard localhost process does not isolate credentials from an unrestricted agent with access to the same OS account. An effective sandbox or other user-managed trust boundary is required for that threat model.
 
-Use Simplified Technical English (STE) for project documents, issues, and code comments.
+The first milestone is a security proof of concept for one GCP project and one fixed resource template. Multi-cloud deployment, a built-in sandbox, unattended infrastructure changes, and a custom IaC engine are out of scope.
+
+## Development policy
+
+Use **Simplified Technical English (STE)** in repository documents, issues, pull requests, and code comments.
