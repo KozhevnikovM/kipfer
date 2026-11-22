@@ -28,7 +28,7 @@ Start with `opencode` in the repository root, then pick `intake` (new task) or `
 - **Branches** follow `bug|feature|docs/<ISSUE_NUMBER>/short-description`; every task has a GitHub issue.
 - **Spec gate**: `spec-reviewer` reviews every spec before implementation. An explicit `pass` verdict on a specific spec revision is required. A `request changes` verdict blocks implementation; a substantive spec change requires a new review.
 - **Quality gates** before merge: QG1 (quality) and QG2 (security) by agent `qa`; QG3 (architecture, including sync and archive artifacts) by agent `spec-reviewer`. Each verdict is a separate PR comment with the full tested SHA. Any new commit in the branch annuls all previous verdicts.
-- **Merge is human-only**: `gh pr merge` requires owner confirmation for every agent; direct push to main is denied.
+- **Merge is human-only**: `gh pr merge` requires owner confirmation for every agent. OpenCode permissions deny the standard push-to-main forms; GitHub branch protection is not available on this plan, so the owner remains the final control.
 - **Coordination** of parallel agents (separate worktrees): plugin `.opencode/plugins/team/` provides `team.announce/roster/chat_post/chat_read/context` (presence and per-task chat threads; thread = board card id).
 
 ## Build, Test, and Development Commands

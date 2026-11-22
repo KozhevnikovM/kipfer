@@ -5,10 +5,16 @@
     // Merge is a human-only decision
     { "action": "shell", "resource": "gh pr merge*", "effect": "ask" },
     { "action": "shell", "resource": "gh pr merge *", "effect": "ask" },
-    // Direct push to main is forbidden (policy level)
+    // Direct push to main is forbidden (policy level, standard forms)
     { "action": "shell", "resource": "git push origin main", "effect": "deny" },
     { "action": "shell", "resource": "git push origin main *", "effect": "deny" },
-    { "action": "shell", "resource": "git push origin HEAD:main", "effect": "deny" }
+    { "action": "shell", "resource": "git push origin main*", "effect": "deny" },
+    { "action": "shell", "resource": "git push origin HEAD:main", "effect": "deny" },
+    { "action": "shell", "resource": "git push origin +main", "effect": "deny" },
+    { "action": "shell", "resource": "git push origin +main*", "effect": "deny" },
+    { "action": "shell", "resource": "git push origin refs/heads/main*", "effect": "deny" },
+    { "action": "shell", "resource": "git push -u origin main*", "effect": "deny" },
+    { "action": "shell", "resource": "git push --force origin main*", "effect": "deny" }
   ],
   "agents": {
     "spec-reviewer": {

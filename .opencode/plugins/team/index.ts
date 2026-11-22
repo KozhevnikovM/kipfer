@@ -1,19 +1,20 @@
 /**
- * team — координация параллельных агентов конвейера family-vpn.
+ * team — coordination of parallel conveyor agents in kipfer.
  *
- * Даёт агентам два механизма:
- *  1. Presence: кто, над какой задачей, на какой стадии, в каком статусе (worktree/ветка).
- *  2. Чат: треды на задачу (thread = id карточки доски) + канал "global".
+ * Gives agents two mechanisms:
+ *  1. Presence: who works on which task, at which stage, in which status
+ *     (branch and worktree included).
+ *  2. Chat: one thread per task (thread = board card id) plus a "global" channel.
  *
- * Инструменты: team_announce, team_roster, team_chat_post, team_chat_read, team_context.
- * Данные — в storage плагина, переживают перезапуск сервера.
+ * Tools: team_announce, team_roster, team_chat_post, team_chat_read, team_context.
+ * Data lives in plugin storage and survives a server restart.
  */
 import { Plugin } from "@opencode/plugin"
 
 const STAGES = ["backlog", "design", "spec-review", "implementation", "qa", "pr-review", "done-merged"]
 const STATUSES = ["working", "blocked", "waiting", "done"]
 const CHAT_LIMIT = 100
-// done-объявления исчезают из roster/context через 30 минут
+// done announcements leave roster/context after 30 minutes
 const DONE_TTL_MS = 30 * 60_000
 const isStaleDone = (r: Presence) => r.status === "done" && now() - r.updated > DONE_TTL_MS
 
@@ -49,7 +50,7 @@ type Message = {
 const now = () => Date.now()
 const iso = () => new Date().toISOString()
 
-// валидация входа без зависимостей
+// dependency-free input validation
 function bad(label: string, value: unknown): never {
   throw new Error(`${label} invalid: ${String(value)}`)
 }
@@ -62,13 +63,13 @@ function checkStatus(v: string) {
 }
 
 export default Plugin.define({
-  id: "family-vpn-team",
+  id: "kipfer-team",
   async setup(ctx) {
     await ctx.tool.transform((editor) => {
       editor.namespace({
         name: "team",
         description:
-          "Координация параллельных агентов конвейера: presence (кто чем занят) и чат-треды по задачам",
+          "Coordination of parallel conveyor agents: presence (who works on what) and per-task chat threads",
       })
 
       const fromLabel = (agent: string, task?: string) => (task ? `${agent}[${task}]` : agent)
@@ -78,14 +79,14 @@ export default Plugin.define({
       editor.add({
         name: "announce",
         description:
-          "Объявить/обновить свой статус в конвейере. Вызывать: при старте работы над задачей (working), при ожидании чужого результата (waiting), при блокировке (blocked), по завершении (done). task — id карточки доски (короткий префикс) или '-'.",
+          "Announce or update your status in the conveyor. Call it when you start work on a task (working), wait for another agent's result (waiting), get blocked (blocked), and when you finish (done). task = board card id (short prefix) or '-'.",
         input: {
           type: "object",
           properties: {
-            task: { type: "string", description: "id карточки доски или '-'" },
-            stage: { type: "string", enum: STAGES, description: "стадия конвейера" },
+            task: { type: "string", description: "board card id or '-'" },
+            stage: { type: "string", enum: STAGES, description: "conveyor stage" },
             status: { type: "string", enum: STATUSES, description: "working | blocked | waiting | done" },
-            note: { type: "string", description: "чем именно занят, одна строка (ru)" },
+            note: { type: "string", description: "what you do, one line (STE)" },
             branch: { type: "string" },
             worktree: { type: "string" },
           },
@@ -110,7 +111,7 @@ export default Plugin.define({
             updatedISO: iso(),
           }
           await ctx.storage.set(`presence/${agent}/${input.task}`, rec as never)
-          const content = `ok: ${fromLabel(agent, input.task)} → ${input.stage}/${input.status}` +
+          const content = `ok: ${fromLabel(agent, input.task)} -> ${input.stage}/${input.status}` +
             (input.note ? ` — ${input.note}` : "")
           await context.progress({ status: content })
           return { content }
@@ -120,13 +121,13 @@ export default Plugin.define({
       editor.add({
         name: "roster",
         description:
-          "Показать все активные объявления агентов конвейера: кто, над какой задачей, стадия, статус, ветка/worktree, давность. Вызывать перед взятием новой задачи и перед правками, которые могут пересекаться с чужими.",
+          "Show all active conveyor announcements: who, which task, stage, status, branch and worktree, with age. Call it before you take a new task and before edits that may overlap another agent's work.",
         input: {
           type: "object",
           properties: {
             stale_minutes: {
               type: "number",
-              description: "считать объявление устаревшим после N минут без обновления (по умолчанию 360)",
+              description: "treat an announcement as stale after N minutes without updates (default 360)",
             },
           },
           additionalProperties: false,
@@ -140,11 +141,11 @@ export default Plugin.define({
             .map((e) => e.value as unknown as Presence)
             .filter((r) => now() - r.updated <= staleMs && !isStaleDone(r))
             .sort((a, b) => b.updated - a.updated)
-          if (recs.length === 0) return { content: "roster пуст — никто не объявлял статус" }
+          if (recs.length === 0) return { content: "roster is empty — no agent announced a status" }
           const lines = recs.map((r) => {
             const ageMin = Math.round((now() - r.updated) / 60_000)
             return [
-              `${fromLabel(r.agent, r.task)} — ${r.stage}/${r.status} (${ageMin} мин назад)`,
+              `${fromLabel(r.agent, r.task)} — ${r.stage}/${r.status} (${ageMin} min ago)`,
               r.note ? `    ${r.note}` : null,
               r.branch || r.worktree ? `    ${[r.branch, r.worktree].filter(Boolean).join(" | ")}` : null,
             ]
@@ -160,14 +161,14 @@ export default Plugin.define({
       editor.add({
         name: "chat_post",
         description:
-          'Сообщение в тред координации. thread = id карточки задачи или "global". Обращение к конкретному агенту — полем to (имя агента). Пиши коротко и по делу (ru).',
+          'Post a message to a coordination thread. thread = task card id or "global". Address a specific agent with the to field (agent name). Keep it short and to the point (STE).',
         input: {
           type: "object",
           properties: {
-            thread: { type: "string", description: "id карточки или global" },
+            thread: { type: "string", description: "card id or global" },
             text: { type: "string" },
-            to: { type: "string", description: "адресат (имя агента), опционально" },
-            task: { type: "string", description: "своя карточка для подписи, опционально" },
+            to: { type: "string", description: "addressee (agent name), optional" },
+            task: { type: "string", description: "your own card id for the signature, optional" },
           },
           required: ["thread", "text"],
           additionalProperties: false,
@@ -177,7 +178,7 @@ export default Plugin.define({
           const input = raw as { thread: string; text: string; to?: string; task?: string }
           const agent = (context.agent as string | undefined) ?? "unknown"
           if (!input.thread.trim()) bad("thread", input.thread)
-          if (!input.text.trim()) bad("text", "(пусто)")
+          if (!input.text.trim()) bad("text", "(empty)")
           const msg: Message = {
             seq: now(),
             from: fromLabel(agent, input.task),
@@ -187,19 +188,19 @@ export default Plugin.define({
           }
           const key = `chat/${input.thread.replace(/[^a-zA-Z0-9_-]/g, "_")}/${msg.seq}`
           await ctx.storage.set(key, msg as never)
-          return { content: `ok: сообщение #${msg.seq} в ${input.thread}` }
+          return { content: `ok: message #${msg.seq} posted to ${input.thread}` }
         },
       })
 
       editor.add({
         name: "chat_read",
         description:
-          "Прочитать тред координации. since — seq последнего прочитанного сообщения (вернёт только более новые); без since — весь тред.",
+          "Read a coordination thread. since = seq of the last read message (returns only newer ones); without since, the whole thread.",
         input: {
           type: "object",
           properties: {
             thread: { type: "string" },
-            since: { type: "number", description: "seq, после которого нужны сообщения" },
+            since: { type: "number", description: "return messages with seq greater than this" },
           },
           required: ["thread"],
           additionalProperties: false,
@@ -215,26 +216,26 @@ export default Plugin.define({
             .sort((a, b) => a.seq - b.seq)
             .slice(-CHAT_LIMIT)
           if (msgs.length === 0) {
-            return { content: `тред ${input.thread} пуст${input.since !== undefined ? " после seq " + input.since : ""}` }
+            return { content: `thread ${input.thread} is empty${input.since !== undefined ? " after seq " + input.since : ""}` }
           }
           const lines = msgs.map((m) => {
             const hhmm = m.at.slice(11, 16)
-            return `[${hhmm}] ${m.from}${m.to ? ` → ${m.to}` : ""}: ${m.text}  (#${m.seq})`
+            return `[${hhmm}] ${m.from}${m.to ? ` -> ${m.to}` : ""}: ${m.text}  (#${m.seq})`
           })
           return { content: lines.join("\n") }
         },
       })
 
-      // ---------- одномоментный снимок для старта агента ----------
+      // ---------- combined snapshot for agent start ----------
 
       editor.add({
         name: "context",
         description:
-          "Стартовый снимок координации: активный roster + последние сообщения треда задачи. Вызывать первым делом при начале работы над задачей и перед потенциально конфликтующими действиями.",
+          "Start snapshot: active roster plus the latest messages of a task thread. Call it first when you start work on a task and before actions that may conflict with other agents.",
         input: {
           type: "object",
           properties: {
-            thread: { type: "string", description: "id карточки своей задачи или global" },
+            thread: { type: "string", description: "your task card id or global" },
           },
           required: ["thread"],
           additionalProperties: false,
@@ -259,22 +260,22 @@ export default Plugin.define({
 
           const rosterPart =
             recs.length === 0
-              ? ["ROSTER: пусто"]
+              ? ["ROSTER: empty"]
               : [
                   "ROSTER:",
                   ...recs.map((r) => {
                     const ageMin = Math.round((now() - r.updated) / 60_000)
                     const where = [r.branch, r.worktree].filter(Boolean).join(" | ")
-                    return `- ${fromLabel(r.agent, r.task)}: ${r.stage}/${r.status} (${ageMin} мин)${where ? ` [${where}]` : ""}${r.note ? ` — ${r.note}` : ""}`
+                    return `- ${fromLabel(r.agent, r.task)}: ${r.stage}/${r.status} (${ageMin} min)${where ? ` [${where}]` : ""}${r.note ? ` — ${r.note}` : ""}`
                   }),
                 ]
 
           const chatPart =
             msgs.length === 0
-              ? [`CHAT ${input.thread}: пусто`]
+              ? [`CHAT ${input.thread}: empty`]
               : [
                   `CHAT ${input.thread}:`,
-                  ...msgs.map((m) => `- [${m.at.slice(11, 16)}] ${m.from}${m.to ? ` → ${m.to}` : ""}: ${m.text}`),
+                  ...msgs.map((m) => `- [${m.at.slice(11, 16)}] ${m.from}${m.to ? ` -> ${m.to}` : ""}: ${m.text}`),
                 ]
 
           return { content: [...rosterPart, "", ...chatPart].join("\n") }
