@@ -2,7 +2,7 @@
 
 - **Status:** Accepted (implementation details need validation)
 - **Date:** 2026-11-22
-- **Related:** [Kipfer Concept](../CONCEPT.md), [ADR-0002](ADR-0002-per-operation-browser-authorization.md), [ADR-0003](ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](ADR-0004-google-oauth-application.md)
+- **Related:** [Kipfer Concept](../CONCEPT.md), [ADR-0002](ADR-0002-per-operation-browser-authorization.md), [ADR-0003](ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](ADR-0004-google-oauth-application.md), [ADR-0005](ADR-0005-go-stack-two-build-outputs.md), [ADR-0006](ADR-0006-user-started-executor-daemon.md)
 
 ## Context
 
@@ -22,6 +22,8 @@ A shared localhost process does not give a secure boundary against an unrestrict
 8. Support owner-driven emergency revocation. Report verified and unverified results separately.
 
 **Amendment:** ADR-0002 requires fresh browser authorization per operation. ADR-0003 assigns isolation of the agent to the user. ADR-0004 defines the Google OAuth Desktop App interface. These newer ADRs clarify, but do not remove, the local executor and least-privilege requirements.
+
+**Amendment:** [ADR-0006](ADR-0006-user-started-executor-daemon.md) refines the process model. The agent-facing `kipfer` binary is a client-only build. The `kipferd` daemon is a separate binary that the user starts. The daemon runs only constrained loopback listeners, and one daemon instance serves each user account.
 
 ## Consequences
 
