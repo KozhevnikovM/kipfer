@@ -2,7 +2,7 @@
 
 ## Why
 
-The concept ([CONCEPT.md](../../../docs/CONCEPT.md)) and ADR-0001..0004 fix the security architecture, but no implementation stack, executor process model, or agent interface contract is decided. The MVP in CONCEPT section 8 cannot start, and the open technical questions cannot be turned into spikes, until these decisions are recorded. This change records them as ADRs while the design is still small and cheap to revise.
+The concept ([CONCEPT.md](../../../../docs/CONCEPT.md)) and ADR-0001..0004 fix the security architecture, but no implementation stack, executor process model, or agent interface contract is decided. The MVP in CONCEPT section 8 cannot start, and the open technical questions cannot be turned into spikes, until these decisions are recorded. This change records them as ADRs while the design is still small and cheap to revise.
 
 ## What Changes
 
