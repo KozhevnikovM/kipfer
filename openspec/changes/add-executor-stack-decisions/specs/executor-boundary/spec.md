@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines the trust boundary between the untrusted AI agent and the local trusted executor: what the agent-facing surface may accept and return, and what it must never expose. These requirements are design requirements for the MVP implementation; they are not implemented or verified yet.
+Defines the trust boundary between the untrusted AI agent and the local trusted executor: what the agent-facing surface may accept and return, which local listeners exist, and what they must never do. These requirements are design requirements for the MVP implementation. They are not implemented or verified yet.
 
 ## ADDED Requirements
 
@@ -20,43 +20,53 @@ The executor SHALL expose exactly one agent-facing interface that accepts only t
 - **WHEN** the agent submits a request that does not match the schema or references an unknown operation
 - **THEN** the executor rejects the request and executes no cloud operation
 
-### Requirement: No privileged network endpoints
+### Requirement: Constrained loopback listeners
 
-The executor MUST NOT expose privileged execution, credential issuance, token retrieval, or approval endpoints on any network interface, including loopback. Privileged logic SHALL run in-process and SHALL start only from a browser-approved session.
+The executor SHALL run exactly three local listeners, all bound to loopback: the agent API, the OAuth callback handler, and the approval UI. No listener SHALL execute a privileged cloud operation or issue a credential. The approval UI and the OAuth callback handler SHALL record an approval or authorization only for a session that the executor created and that carries valid owner-presence proof as defined by the approval design. Privileged execution SHALL have no listener.
 
 #### Scenario: Agent tries to forge an approval
 
-- **WHEN** the agent sends a crafted HTTP request to any executor port that mimics owner approval
-- **THEN** the executor does not create or extend an approval session
+- **WHEN** the agent sends a crafted HTTP request to any executor listener that mimics owner approval
+- **THEN** the executor does not create, extend, complete, or replay an approval session
 
 #### Scenario: Agent requests a cloud token
 
 - **WHEN** the agent requests an OAuth access token, an impersonated token, or any cloud credential through the agent-facing interface
 - **THEN** the executor refuses the request and returns an error
 
-### Requirement: User-started executor process
+### Requirement: Separated daemon entry point
 
-The trusted executor SHALL run as a process started by the user or by a user-managed system service. The agent-facing CLI SHALL act only as a client of that process and SHALL NOT spawn privileged logic as a child process of the agent.
+The agent-facing CLI SHALL be a client-only build with no daemon code. The daemon SHALL be a separate build output that the user installs and starts. The executor SHALL allow at most one daemon instance per user account. The design cannot distinguish a user-started daemon from an agent-started daemon process under the same OS account. The approval and owner-presence controls are the boundary for that case, and agent isolation stays user-managed per ADR-0003.
+
+#### Scenario: Agent runs the client binary
+
+- **WHEN** the agent runs the client binary in any mode
+- **THEN** the process performs client operations only; the build contains no daemon code and cannot start privileged logic
 
 #### Scenario: Daemon is not running
 
-- **WHEN** the agent invokes the CLI while the executor daemon is not running
+- **WHEN** the agent invokes the CLI while the daemon is not running
 - **THEN** the CLI reports that Kipfer is unavailable and no privileged operation starts
+
+#### Scenario: Second daemon instance starts
+
+- **WHEN** a second daemon instance starts for the same user account
+- **THEN** the new instance refuses to start and exits without creating approval sessions or credentials
 
 ### Requirement: Fail-safe approval sessions
 
-Approval sessions SHALL exist only in the memory of the executor process. A daemon restart MUST invalidate all pending approval sessions and MUST NOT resume an interrupted privileged operation.
+An approval session SHALL exist only in the memory of the daemon process. Session identifiers, OAuth state values, and PKCE verifiers SHALL never persist to disk. A daemon restart MUST invalidate all pending approval sessions and MUST NOT resume an interrupted privileged operation. After a restart, the executor SHALL record the interrupted operation as unverified in the non-secret execution status.
 
 #### Scenario: Daemon restarts during an approved operation
 
-- **WHEN** the executor process stops and starts again while a privileged operation runs
-- **THEN** the operation stops, no credential survives in memory or on disk, and a new owner approval is required before any retry
+- **WHEN** the daemon process stops and starts again while a privileged operation runs
+- **THEN** the operation stops, the execution status records the operation as unverified, no credential survives in memory or on disk, and a new owner approval is required before any retry
 
 ### Requirement: No credentials through the agent boundary
 
-The agent-facing interface, its responses, and all executor logs MUST NOT contain OAuth access tokens, refresh tokens, impersonated tokens, or service-account keys.
+The agent-facing interface, its responses, and all executor logs MUST NOT contain OAuth access tokens, refresh tokens, impersonated tokens, or service-account keys. Persisted non-secret metadata (plan digests, approval records, execution status) MUST NOT contain credential material.
 
 #### Scenario: Credential exposure scan
 
-- **WHEN** the executor processes requests and writes responses and logs
-- **THEN** a scan of the agent-facing traffic and log files finds no cloud credential material
+- **WHEN** the executor processes requests and writes responses, logs, and metadata records
+- **THEN** a scan of the agent-facing traffic, log files, and metadata store finds no cloud credential material

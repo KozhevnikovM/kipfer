@@ -2,20 +2,22 @@
 
 ## 1. ADR promotion
 
-- [ ] 1.1 Confirm ADR-0005 status with the owner, then promote `adr-drafts/ADR-0005-go-single-binary-stack.md` to `docs/adr/ADR-0005-go-single-binary-stack.md` with the final status line
-- [ ] 1.2 Confirm ADR-0006 status with the owner, then promote `adr-drafts/ADR-0006-user-started-executor-daemon.md` to `docs/adr/ADR-0006-user-started-executor-daemon.md` with the final status line
+- [ ] 1.1 Promote `adr-drafts/ADR-0005-go-stack-two-build-outputs.md` to `docs/adr/ADR-0005-go-stack-two-build-outputs.md`. Set the status to "Accepted (design decision; implementation and security validation pending)". Rewrite the relative links for the `docs/adr/` location. The owner confirms this status by merging the PR; the PR description must ask for this confirmation.
+- [ ] 1.2 Promote `adr-drafts/ADR-0006-user-started-executor-daemon.md` to `docs/adr/ADR-0006-user-started-executor-daemon.md` with the same status, link rewrite, and owner-confirmation protocol.
 
 ## 2. Documentation updates
 
-- [ ] 2.1 Update `docs/CONCEPT.md`: add ADR-0005 and ADR-0006 to the accepted decisions list; add a short stack and process-model note to the architecture section; keep the decided-vs-spike distinction explicit
-- [ ] 2.2 Update `README.md`: add ADR-0005 and ADR-0006 to the architecture documents list
+- [ ] 2.1 Update `docs/CONCEPT.md`: add ADR-0005 and ADR-0006 to the accepted decisions list; record the Cloud Run template as the fixed MVP template in section 8 item 5; update the status of open questions 3, 4, and 5 in section 9 (3: candidate Policy Troubleshooter spike; 4: partially addressed by signed two-binary distribution; 5: narrowed by template selection). Keep decided-versus-spike explicit.
+- [ ] 2.2 Update `README.md`: add ADR-0005 and ADR-0006 to the architecture documents list.
+- [ ] 2.3 Update the Related lines of ADR-0001 to ADR-0004 to list ADR-0005 and ADR-0006. Add an amendment note to ADR-0001: ADR-0006 refines the process model with a client-only CLI binary, a separate daemon binary, and constrained loopback listeners.
 
 ## 3. Follow-up issue creation
 
-- [ ] 3.1 Create a GitHub issue for the WebAuthn owner-presence spike (CONCEPT open question 1; output feeds the future approval-mechanism ADR)
-- [ ] 3.2 Create a GitHub issue for the minimum OAuth scope and IAM permission spike for the Cloud Run template (CONCEPT open question 2; scratch project required)
+- [ ] 3.1 Create the WebAuthn owner-presence spike issue (open question 1): platform and browser coverage; fail-closed fallback without a platform authenticator; `clientDataJSON` origin binding for local origins that share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the plan-approval step.
+- [ ] 3.2 Create the minimum OAuth scope and IAM permission spike issue (open question 2; scratch project; Cloud Run template).
+- [ ] 3.3 Create the Policy Troubleshooter spike issue (open question 3): caller identity and policy-read permissions; folder and organization policy behavior; `actAs` coverage; the forbidden-permission list; the fail-closed result.
 
 ## 4. Validation
 
-- [ ] 4.1 Run `openspec validate --strict` on this change and fix reported issues
-- [ ] 4.2 Verify every relative link in touched documents resolves; confirm no document claims implemented or verified security behavior; run `git diff --check`
+- [ ] 4.1 Run `openspec validate --strict` on this change and fix reported issues.
+- [ ] 4.2 Verify every relative link in touched documents resolves; confirm no document states unimplemented behavior as implemented or guarantees unverified security properties; run `git diff --check`.
