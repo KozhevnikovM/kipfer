@@ -1,8 +1,8 @@
 # ADR-0006: User-Started Executor Daemon with Constrained Listeners
 
-- **Status:** Proposed (pending owner confirmation)
+- **Status:** Accepted (design decision; implementation and security validation pending)
 - **Date:** 2026-11-22
-- **Related:** [Kipfer Concept](../../../../docs/CONCEPT.md), [ADR-0001](../../../../docs/adr/ADR-0001-local-executor-bootstrap.md), [ADR-0002](../../../../docs/adr/ADR-0002-per-operation-browser-authorization.md), [ADR-0003](../../../../docs/adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](../../../../docs/adr/ADR-0004-google-oauth-application.md), [ADR-0005](ADR-0005-go-stack-two-build-outputs.md)
+- **Related:** [Kipfer Concept](../CONCEPT.md), [ADR-0001](ADR-0001-local-executor-bootstrap.md), [ADR-0002](ADR-0002-per-operation-browser-authorization.md), [ADR-0003](ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](ADR-0004-google-oauth-application.md), [ADR-0005](ADR-0005-go-stack-two-build-outputs.md)
 
 ## Context
 

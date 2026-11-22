@@ -2,8 +2,8 @@
 
 ## 1. ADR promotion
 
-- [ ] 1.1 Move `adr-drafts/ADR-0005-go-stack-two-build-outputs.md` to `docs/adr/ADR-0005-go-stack-two-build-outputs.md` with `git mv`. No draft copy remains in the change directory. Set the status to "Accepted (design decision; implementation and security validation pending)". Rewrite the relative links for the `docs/adr/` location: use `../CONCEPT.md` and `ADR-000N-<name>.md`, as in ADR-0001 to ADR-0004. The owner confirms this status by merging the PR; the PR description must ask for this confirmation.
-- [ ] 1.2 Move `adr-drafts/ADR-0006-user-started-executor-daemon.md` to `docs/adr/ADR-0006-user-started-executor-daemon.md` with `git mv`. No draft copy remains in the change directory. Apply the same status, link rewrite, and owner-confirmation protocol.
+- [x] 1.1 Move `adr-drafts/ADR-0005-go-stack-two-build-outputs.md` to `docs/adr/ADR-0005-go-stack-two-build-outputs.md` with `git mv`. No draft copy remains in the change directory. Set the status to "Accepted (design decision; implementation and security validation pending)". Rewrite the relative links for the `docs/adr/` location: use `../CONCEPT.md` and `ADR-000N-<name>.md`, as in ADR-0001 to ADR-0004. The owner confirms this status by merging the PR; the PR description must ask for this confirmation.
+- [x] 1.2 Move `adr-drafts/ADR-0006-user-started-executor-daemon.md` to `docs/adr/ADR-0006-user-started-executor-daemon.md` with `git mv`. No draft copy remains in the change directory. Apply the same status, link rewrite, and owner-confirmation protocol.
 
 ## 2. Documentation updates
 
