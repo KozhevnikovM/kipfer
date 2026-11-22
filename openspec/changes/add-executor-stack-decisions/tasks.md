@@ -19,5 +19,5 @@
 
 ## 4. Validation
 
-- [ ] 4.1 Run `openspec validate --strict` on this change and fix reported issues.
-- [ ] 4.2 Verify every relative link in touched documents resolves; confirm no document states unimplemented behavior as implemented or guarantees unverified security properties; run `git diff --check`.
+- [x] 4.1 Run `openspec validate --strict` on this change and fix reported issues.
+- [x] 4.2 Verify every relative link in touched documents resolves; confirm no document states unimplemented behavior as implemented or guarantees unverified security properties; run `git diff --check`.
