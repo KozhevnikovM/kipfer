@@ -2,7 +2,7 @@
 
 - **Status:** Proposed (pending owner confirmation)
 - **Date:** 2026-11-22
-- **Related:** [Kipfer Concept](../../../docs/CONCEPT.md), [ADR-0001](../../../docs/adr/ADR-0001-local-executor-bootstrap.md), [ADR-0002](../../../docs/adr/ADR-0002-per-operation-browser-authorization.md), [ADR-0003](../../../docs/adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](../../../docs/adr/ADR-0004-google-oauth-application.md), [ADR-0006](ADR-0006-user-started-executor-daemon.md)
+- **Related:** [Kipfer Concept](../../../../docs/CONCEPT.md), [ADR-0001](../../../../docs/adr/ADR-0001-local-executor-bootstrap.md), [ADR-0002](../../../../docs/adr/ADR-0002-per-operation-browser-authorization.md), [ADR-0003](../../../../docs/adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](../../../../docs/adr/ADR-0004-google-oauth-application.md), [ADR-0006](ADR-0006-user-started-executor-daemon.md)
 
 ## Context
 
@@ -27,12 +27,13 @@ Three CONCEPT constraints drive this decision:
 9. Implement guardrail checks (scope, permission, plan, lifecycle, cost) as hand-written typed checks against the validated plan. Do not embed a policy language such as OPA/Rego.
 10. Embed the approval UI as static assets inside `kipferd`. The user machine needs no Node runtime or separate UI server.
 11. Ship signed release binaries (mechanism to be fixed before the first public release). Document installation outside agent-writable paths, for example `/usr/local/bin`.
+12. Harden the `kipferd` network configuration: it ignores proxy and custom CA environment variables and uses a fixed, documented network configuration. This removes an agent-controlled environment influence on privileged traffic.
 
 ## Consequences
 
 **Benefits**
 
-- Small, auditable TCB: one language, two small build outputs, a short reviewed dependency list.
+- Small, auditable TCB: one language, two build outputs, a curatable reviewed dependency list.
 - The agent-facing binary cannot start privileged logic; daemon code is absent from its build.
 - Official, complete GCP SDK coverage maintained by Google.
 - Signed single-file distribution per build output partially resolves CONCEPT open question 4.
@@ -62,4 +63,5 @@ Three CONCEPT constraints drive this decision:
 - Dependency review: `go list -m all` output is reviewed and justified; no module introduces dynamic loading or an interpreter.
 - Digest determinism: the same plan produces the same digest across platforms and repeated runs.
 - Audit chain verification detects tampering and reordering; security documents state the same-user rewrite limit.
+- Privileged traffic ignores hostile proxy and CA environment variables.
 - Credential exposure: scans of responses, logs, SQLite content, and crash artifacts find no token or key material, per ADR-0003 validation.

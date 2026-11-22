@@ -22,7 +22,7 @@ The executor SHALL expose exactly one agent-facing interface that accepts only t
 
 ### Requirement: Constrained loopback listeners
 
-The executor SHALL run exactly three local listeners, all bound to loopback: the agent API, the OAuth callback handler, and the approval UI. No listener SHALL execute a privileged cloud operation or issue a credential. The approval UI and the OAuth callback handler SHALL record an approval or authorization only for a session that the executor created and that carries valid owner-presence proof as defined by the approval design. Privileged execution SHALL have no listener.
+The executor SHALL run only these local listeners, all bound to loopback: the agent API, the OAuth callback handler, and the approval UI. No listener SHALL execute a privileged cloud operation or issue a credential. The OAuth callback handler SHALL accept a callback only for a session that the executor created and that matches the state value of that session (ADR-0004). The approval UI SHALL record an approval only for a session that the executor created and that carries valid owner-presence proof. The approval-mechanism ADR defines that proof. Privileged execution SHALL have no listener.
 
 #### Scenario: Agent tries to forge an approval
 
@@ -64,7 +64,7 @@ An approval session SHALL exist only in the memory of the daemon process. Sessio
 
 ### Requirement: No credentials through the agent boundary
 
-The agent-facing interface, its responses, and all executor logs MUST NOT contain OAuth access tokens, refresh tokens, impersonated tokens, or service-account keys. Persisted non-secret metadata (plan digests, approval records, execution status) MUST NOT contain credential material.
+The agent-facing interface, its responses, and all executor logs MUST NOT contain OAuth access tokens, refresh tokens, impersonated tokens, service-account keys, authorization codes, PKCE verifiers, or any other credential material. Persisted non-secret metadata (plan digests, approval records, execution status) MUST NOT contain credential material.
 
 #### Scenario: Credential exposure scan
 

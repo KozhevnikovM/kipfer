@@ -2,13 +2,13 @@
 
 ## 1. ADR promotion
 
-- [ ] 1.1 Promote `adr-drafts/ADR-0005-go-stack-two-build-outputs.md` to `docs/adr/ADR-0005-go-stack-two-build-outputs.md`. Set the status to "Accepted (design decision; implementation and security validation pending)". Rewrite the relative links for the `docs/adr/` location. The owner confirms this status by merging the PR; the PR description must ask for this confirmation.
-- [ ] 1.2 Promote `adr-drafts/ADR-0006-user-started-executor-daemon.md` to `docs/adr/ADR-0006-user-started-executor-daemon.md` with the same status, link rewrite, and owner-confirmation protocol.
+- [ ] 1.1 Move `adr-drafts/ADR-0005-go-stack-two-build-outputs.md` to `docs/adr/ADR-0005-go-stack-two-build-outputs.md` with `git mv`. No draft copy remains in the change directory. Set the status to "Accepted (design decision; implementation and security validation pending)". Rewrite the relative links for the `docs/adr/` location. The owner confirms this status by merging the PR; the PR description must ask for this confirmation.
+- [ ] 1.2 Move `adr-drafts/ADR-0006-user-started-executor-daemon.md` to `docs/adr/ADR-0006-user-started-executor-daemon.md` with `git mv`. No draft copy remains in the change directory. Apply the same status, link rewrite, and owner-confirmation protocol.
 
 ## 2. Documentation updates
 
-- [ ] 2.1 Update `docs/CONCEPT.md`: add ADR-0005 and ADR-0006 to the accepted decisions list; record the Cloud Run template as the fixed MVP template in section 8 item 5; update the status of open questions 3, 4, and 5 in section 9 (3: candidate Policy Troubleshooter spike; 4: partially addressed by signed two-binary distribution; 5: narrowed by template selection). Keep decided-versus-spike explicit.
-- [ ] 2.2 Update `README.md`: add ADR-0005 and ADR-0006 to the architecture documents list.
+- [ ] 2.1 Update `docs/CONCEPT.md`: add ADR-0005 and ADR-0006 to the accepted decisions list; add a short stack and process-model note to section 3 (user-started `kipferd`, client-only `kipfer`, constrained loopback listeners, manual start in the MVP); record the Cloud Run template as the fixed MVP template in section 8 item 5; update the status of open questions 1 to 5 in section 9 (1: candidate WebAuthn spike; 2: spike planned on a scratch project for the Cloud Run template; 3: candidate Policy Troubleshooter spike; 4: partially addressed by signed two-binary distribution; 5: narrowed by template selection). Keep decided-versus-spike explicit.
+- [ ] 2.2 Update `README.md`: add ADR-0005 and ADR-0006 to the architecture documents list; add one sentence to the user experience section: the user installs `kipferd` and starts it in a terminal; the first resource template is Cloud Run.
 - [ ] 2.3 Update the Related lines of ADR-0001 to ADR-0004 to list ADR-0005 and ADR-0006. Add an amendment note to ADR-0001: ADR-0006 refines the process model with a client-only CLI binary, a separate daemon binary, and constrained loopback listeners.
 
 ## 3. Follow-up issue creation

@@ -2,7 +2,7 @@
 
 - **Status:** Proposed (pending owner confirmation)
 - **Date:** 2026-11-22
-- **Related:** [Kipfer Concept](../../../docs/CONCEPT.md), [ADR-0001](../../../docs/adr/ADR-0001-local-executor-bootstrap.md), [ADR-0002](../../../docs/adr/ADR-0002-per-operation-browser-authorization.md), [ADR-0003](../../../docs/adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](../../../docs/adr/ADR-0004-google-oauth-application.md), [ADR-0005](ADR-0005-go-stack-two-build-outputs.md)
+- **Related:** [Kipfer Concept](../../../../docs/CONCEPT.md), [ADR-0001](../../../../docs/adr/ADR-0001-local-executor-bootstrap.md), [ADR-0002](../../../../docs/adr/ADR-0002-per-operation-browser-authorization.md), [ADR-0003](../../../../docs/adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](../../../../docs/adr/ADR-0004-google-oauth-application.md), [ADR-0005](ADR-0005-go-stack-two-build-outputs.md)
 
 ## Context
 
@@ -16,10 +16,10 @@ Further constraints apply:
 
 ## Decision
 
-1. Ship two build outputs ([ADR-0005](ADR-0005-go-stack-two-build-outputs.md)): the client-only `kipfer` CLI for the agent, and the `kipferd` daemon with all privileged logic. The user installs and starts `kipferd`. The agent never receives a binary that contains daemon code.
+1. Ship two build outputs ([ADR-0005](ADR-0005-go-stack-two-build-outputs.md)): the client-only `kipfer` CLI for the agent, and the `kipferd` daemon with all privileged logic. The user installs and starts `kipferd`. Kipfer gives the agent only the `kipfer` binary. The `kipferd` binary is executable under the same OS account; see item 5.
 2. `kipfer` is only a client of the daemon's agent interface. It contains no privileged logic and holds no credentials.
 3. Expose exactly **one unprivileged agent-facing interface**: a versioned JSON Schema request contract served on a loopback port. It returns only non-secret plan, status, and result data. A transport-independent contract keeps the boundary testable and leaves room for an MCP adapter later.
-4. Run exactly **three loopback listeners** in `kipferd`: the agent API, the OAuth callback handler, and the approval UI. No listener executes a privileged cloud operation or issues a credential. The approval UI and the OAuth callback handler record an approval or authorization only for a session that the daemon created and that carries valid owner-presence proof as defined by the approval design. Privileged execution has no listener. The approval and callback handlers remain local attack targets. ADR-0002, ADR-0004, and the approval-mechanism ADR define their protections.
+4. Run **only these loopback listeners** in `kipferd`: the agent API, the OAuth callback handler, and the approval UI. No listener executes a privileged cloud operation or issues a credential. The OAuth callback handler accepts a callback only for a session that the daemon created and that matches the state value of that session (ADR-0004). The approval UI records an approval only for a session that the daemon created and that carries valid owner-presence proof; the approval-mechanism ADR defines that proof. Privileged execution has no listener. The approval and callback handlers remain local attack targets. ADR-0002, ADR-0004, and the approval-mechanism ADR define their protections.
 5. Allow **at most one `kipferd` instance per user account** (single-instance lock). Under one OS account, Kipfer cannot distinguish a user-started daemon from an agent-started `kipferd` process. The controls for that case are the single-instance lock, the owner-presence approval design, and the user-managed isolation of ADR-0003.
 6. Hold approval sessions **only in daemon memory**. A restart invalidates pending sessions, stops interrupted operations, records the interrupted operation as unverified, and requires a new browser flow for any retry. This is the designed behavior for the ADR-0002 fail-safe requirement; validation is pending.
 7. Use **manual daemon start in a user terminal as the MVP baseline**. Document that user-level autostart entries (`~/.config/systemd/user/`, launchd user agents) are agent-writable and must not be treated as a trusted bootstrap. Kipfer ships no default autostart in the MVP.
@@ -30,7 +30,7 @@ Further constraints apply:
 
 **Benefits**
 
-- The agent-facing binary contains no daemon code. The agent cannot start privileged logic from the binary it runs.
+- The `kipfer` binary contains no daemon code. The agent cannot start privileged logic from the `kipfer` binary.
 - Privileged execution has no dedicated listener. The three permitted listeners do not execute privileged operations or issue credentials.
 - The user-started daemon is not spawned by the agent and ignores proxy and CA environment influences (ADR-0005). Agent control of the daemon environment is removed for this case.
 - Restart-fail-safe behavior is a design property of in-memory sessions; validation is pending.

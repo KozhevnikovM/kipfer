@@ -49,7 +49,7 @@ The user installs and starts `kipferd`. At most one daemon instance runs per use
 
 - **Why:** a process spawned by the agent inherits agent-controlled environment, argv, and working directory. That contradicts the ADR-0001 trust model.
 - **Honest limit:** under one OS account, Kipfer cannot distinguish a user-started daemon from an agent-started `kipferd` process. The controls for that case are the single-instance lock, the owner-presence approval design, and the user-managed isolation of ADR-0003.
-- **Listeners:** the daemon runs exactly three loopback listeners: the agent API, the OAuth callback handler, and the approval UI. No listener executes a privileged cloud operation or issues a credential. Approval and callback handlers remain local attack targets. ADR-0002, ADR-0004, and the approval-mechanism ADR define their protections.
+- **Listeners:** the daemon runs only these loopback listeners: the agent API, the OAuth callback handler, and the approval UI. No listener executes a privileged cloud operation or issues a credential. The OAuth callback handler accepts a callback only for a daemon-created session with a matching state value (ADR-0004). The approval UI records an approval only for a daemon-created session with valid owner-presence proof; the approval-mechanism ADR defines that proof. Approval and callback handlers remain local attack targets. ADR-0002, ADR-0004, and the approval-mechanism ADR define their protections.
 - **Boot story:** manual start in a user terminal is the MVP baseline. Autostart entries (`~/.config/systemd/user/`, launchd user agents) are agent-writable. Kipfer documents this threat and ships no default autostart in the MVP.
 - **Restart semantics:** approval sessions live only in daemon memory. A restart invalidates sessions, stops interrupted operations, records the interrupted operation as unverified, and requires a new browser flow for any retry. This is the designed behavior for the ADR-0002 fail-safe requirement; validation is pending.
 
@@ -69,9 +69,9 @@ The MVP template deploys one Cloud Run service.
 
 ### D5: Owner-presence proof candidate — WebAuthn user verification (spike)
 
-The approval page, served on loopback, challenges a platform authenticator: Touch ID on macOS, FIDO2 security keys on Linux. `localhost` is a valid WebAuthn RP ID. If the spike succeeds, user verification gives a cryptographic assertion of human interaction that the agent cannot forge without the authenticator. This is a hypothesis until the spike passes.
+The approval page, served on loopback, challenges a platform authenticator (Touch ID on macOS). Linux has no standard platform authenticator; Linux users may use a roaming FIDO2 security key. `localhost` is a valid WebAuthn RP ID. If the spike succeeds, user verification gives a cryptographic assertion of human interaction that the agent cannot forge without the authenticator. This is a hypothesis until the spike passes.
 
-- **Spike must answer:** platform and browser coverage on the supported operating systems; fail-closed behavior without a platform authenticator; enterprise policy restrictions; `clientDataJSON` origin binding, because all local origins share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the separate plan-approval step.
+- **Spike must answer:** platform-versus-roaming authenticator support and browser coverage on the supported operating systems; fail-closed behavior without a platform authenticator; enterprise policy restrictions; `clientDataJSON` origin binding, because all local origins share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the separate plan-approval step.
 - **Alternative considered:** desktop notification plus a confirmation dialog. Rejected as the primary mechanism: same-user processes can fake or click dialogs. WebAuthn binds the proof to hardware user verification.
 - **Status:** candidate. The approval-mechanism ADR follows the spike. No alternative approval path is added without a new ADR; the design fails closed.
 
@@ -84,7 +84,7 @@ The scope and permission guards are planned to use the Google Cloud Policy Troub
 
 ### D7: Ephemeral credential handling inside the daemon
 
-Tokens exist only as process memory inside `kipferd` for the duration of one approved operation. The design prefers a deterministic end for token memory: the executor MAY run each approved operation in a worker process, so token memory ends with the process. Swap prevention (for example `mlock`) is not claimed. Release builds disable core dumps. Memory zeroization in a GC language is best-effort. The effective controls are the short token TTL and the user-managed isolation of ADR-0003. Security documents must not claim guaranteed memory wiping.
+Tokens exist only as process memory inside `kipferd` or its worker process for the duration of one approved operation. The design prefers a deterministic end for token memory: the executor MAY run each approved operation in a worker process, so token memory ends with the process. A worker process stops when the daemon stops. Swap prevention (for example `mlock`) is not claimed. Release builds must disable core dumps. Memory zeroization in a GC language is best-effort. The effective controls are the short token TTL and the user-managed isolation of ADR-0003. Security documents must not claim guaranteed memory wiping.
 
 ## Risks / Trade-offs
 
@@ -92,14 +92,14 @@ Tokens exist only as process memory inside `kipferd` for the duration of one app
 - [A same-user agent can ptrace the daemon, signal it, run `kipferd` itself, or read its memory] → accepted and documented per ADR-0003. The build separation, the single-instance lock, and the approval design reduce the paths but do not remove this threat.
 - [The agent API is unreachable from a sandboxed agent in a different network namespace] → deployment pattern is an open question (D3); documented for the sandbox research track.
 - [WebAuthn spike may fail on platform coverage or enterprise policy] → the approval-mechanism ADR is deferred until the spike; the design fails closed.
-- [The Policy Troubleshooter spike may fail on caller permissions or org-policy behavior] → D6 stays a candidate; guards fall back to direct `getIamPolicy` checks where provable and fail closed otherwise.
+- [The Policy Troubleshooter spike may fail on caller permissions or org-policy behavior] → D6 stays a candidate; the guards stay fail closed until a new ADR or an amendment selects the replacement mechanism.
 - [The minimum IAM/OAuth scope list is unproven] → spike runs against a scratch project before any privileged code path is written.
 - [The Go SQLite driver is a machine translation of the SQLite C source with a sizable dependency set] → accepted because it stores non-secret metadata only and keeps CGO off; stated in ADR-0005.
 - [Go GC may retain token bytes longer than intended] → short TTL, worker-process option, no serialization, no core dumps; docs must not claim guaranteed memory wiping.
 
 ## Migration Plan
 
-Documentation-only change. Steps: promote the ADR drafts in `adr-drafts/` to `docs/adr/`, update CONCEPT.md (accepted decisions, Cloud Run template record, open question status) and README.md (document links), then verify links and `git diff --check`. The branch adds `openspec/config.yaml`; another conveyor branch adds the identical file, so no conflict is expected. Rollback is `git revert`; no data or systems are affected.
+Documentation-only change. Steps: promote the ADR drafts in `adr-drafts/` to `docs/adr/`, update CONCEPT.md (accepted decisions, stack and process-model note, Cloud Run template record, open question status) and README.md (document links, install and start step), then verify links and `git diff --check`. Rollback is `git revert`; no data or systems are affected.
 
 ## Open Questions
 
