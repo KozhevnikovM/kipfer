@@ -39,7 +39,7 @@ Implement one Go codebase as two static build outputs with CGO disabled:
 - **Why two build outputs:** the binary that the agent runs must not contain daemon code. A single combined binary would let the agent start privileged logic as its own child process. Build separation makes the agent-facing binary structurally incapable of that.
 - **Alternatives:** Rust (comparable memory safety; partial community GCP SDK; slower MVP). TypeScript/Bun (npm-scale dependency tree in the privileged process; unacceptable supply-chain base). Python (weak packaging; ships an interpreter).
 - **Dependency policy:** standard library first; every external module is pinned, reviewed, and justified; no dynamic loading, no plugins, no embedded interpreters or policy languages. Resource templates and the approval UI are compiled into `kipferd`. There is no mechanism to load templates at runtime.
-- **Daemon hardening:** `kipferd` ignores proxy and custom CA environment variables and uses fixed, documented network configuration. This removes an agent-controlled environment influence on privileged traffic.
+- **Daemon hardening:** `kipferd` reads no configuration from the inherited environment (proxy, custom CA, Go runtime variables such as `GOTRACEBACK`) and resets its core-dump limit at startup. It uses a fixed, documented network configuration. This removes agent-controlled environment influences on privileged traffic.
 - **Plan digest:** SHA-256 over RFC 8785 canonical JSON of the typed plan. Digests must be deterministic across runs and platforms.
 - **Local state:** SQLite for non-secret metadata only, through a Go driver that keeps CGO off (see ADR-0005 for the trade-off). Audit log: append-only JSONL with an unkeyed SHA-256 hash chain. The chain detects accidental corruption and reordering. It does not protect against a same-user attacker with write access to the state directory. This limit is stated in ADR-0005.
 
@@ -48,7 +48,7 @@ Implement one Go codebase as two static build outputs with CGO disabled:
 The user installs and starts `kipferd`. At most one daemon instance runs per user account (single-instance lock). The agent calls `kipfer`, a client of the daemon's agent API.
 
 - **Why:** a process spawned by the agent inherits agent-controlled environment, argv, and working directory. That contradicts the ADR-0001 trust model.
-- **Honest limit:** under one OS account, Kipfer cannot distinguish a user-started daemon from an agent-started `kipferd` process. The controls for that case are the single-instance lock, the owner-presence approval design, and the user-managed isolation of ADR-0003.
+- **Honest limit:** under one OS account, Kipfer cannot distinguish a user-started daemon from an agent-started `kipferd` process. The controls for that case are the single-instance lock, the owner-presence mechanism, and the user-managed isolation of ADR-0003.
 - **Listeners:** the daemon runs only these loopback listeners: the agent API, the OAuth callback handler, and the approval UI. No listener executes a privileged cloud operation or issues a credential. The OAuth callback handler accepts a callback only for a daemon-created session with a matching state value (ADR-0004). The approval UI records an approval only for a daemon-created session with valid owner-presence proof; the approval-mechanism ADR defines that proof. Approval and callback handlers remain local attack targets. ADR-0002, ADR-0004, and the approval-mechanism ADR define their protections.
 - **Boot story:** manual start in a user terminal is the MVP baseline. Autostart entries (`~/.config/systemd/user/`, launchd user agents) are agent-writable. Kipfer documents this threat and ships no default autostart in the MVP.
 - **Restart semantics:** approval sessions live only in daemon memory. A restart invalidates sessions, stops interrupted operations, records the interrupted operation as unverified, and requires a new browser flow for any retry. This is the designed behavior for the ADR-0002 fail-safe requirement; validation is pending.
@@ -71,7 +71,7 @@ The MVP template deploys one Cloud Run service.
 
 The approval page, served on loopback, challenges a platform authenticator (Touch ID on macOS). Linux has no standard platform authenticator; Linux users may use a roaming FIDO2 security key. `localhost` is a valid WebAuthn RP ID. If the spike succeeds, user verification gives a cryptographic assertion of human interaction that the agent cannot forge without the authenticator. This is a hypothesis until the spike passes.
 
-- **Spike must answer:** platform-versus-roaming authenticator support and browser coverage on the supported operating systems; fail-closed behavior without a platform authenticator; enterprise policy restrictions; `clientDataJSON` origin binding, because all local origins share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the separate plan-approval step.
+- **Spike must answer:** platform-versus-roaming authenticator support and browser coverage on the supported operating systems; fail-closed behavior without an available authenticator (platform or roaming); enterprise policy restrictions; `clientDataJSON` origin binding, because all local origins share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the separate plan-approval step.
 - **Alternative considered:** desktop notification plus a confirmation dialog. Rejected as the primary mechanism: same-user processes can fake or click dialogs. WebAuthn binds the proof to hardware user verification.
 - **Status:** candidate. The approval-mechanism ADR follows the spike. No alternative approval path is added without a new ADR; the design fails closed.
 
@@ -89,9 +89,9 @@ Tokens exist only as process memory inside `kipferd` or its worker process for t
 ## Risks / Trade-offs
 
 - [Manual daemon start is friction; users will add autostart themselves] → document the agent-writable autostart threat in ADR-0006; ship no default autostart in the MVP.
-- [A same-user agent can ptrace the daemon, signal it, run `kipferd` itself, or read its memory] → accepted and documented per ADR-0003. The build separation, the single-instance lock, and the approval design reduce the paths but do not remove this threat.
+- [A same-user agent can ptrace the daemon, signal it, run `kipferd` itself, or read its memory] → accepted and documented per ADR-0003. The build separation, the single-instance lock, and the owner-presence mechanism reduce the paths but do not remove this threat.
 - [The agent API is unreachable from a sandboxed agent in a different network namespace] → deployment pattern is an open question (D3); documented for the sandbox research track.
-- [WebAuthn spike may fail on platform coverage or enterprise policy] → the approval-mechanism ADR is deferred until the spike; the design fails closed.
+- [WebAuthn spike may fail on authenticator coverage or enterprise policy] → the approval-mechanism ADR is deferred until the spike; the design fails closed.
 - [The Policy Troubleshooter spike may fail on caller permissions or org-policy behavior] → D6 stays a candidate; the guards stay fail closed until a new ADR or an amendment selects the replacement mechanism.
 - [The minimum IAM/OAuth scope list is unproven] → spike runs against a scratch project before any privileged code path is written.
 - [The Go SQLite driver is a machine translation of the SQLite C source with a sizable dependency set] → accepted because it stores non-secret metadata only and keeps CGO off; stated in ADR-0005.

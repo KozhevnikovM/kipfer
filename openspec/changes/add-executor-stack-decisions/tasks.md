@@ -2,7 +2,7 @@
 
 ## 1. ADR promotion
 
-- [ ] 1.1 Move `adr-drafts/ADR-0005-go-stack-two-build-outputs.md` to `docs/adr/ADR-0005-go-stack-two-build-outputs.md` with `git mv`. No draft copy remains in the change directory. Set the status to "Accepted (design decision; implementation and security validation pending)". Rewrite the relative links for the `docs/adr/` location. The owner confirms this status by merging the PR; the PR description must ask for this confirmation.
+- [ ] 1.1 Move `adr-drafts/ADR-0005-go-stack-two-build-outputs.md` to `docs/adr/ADR-0005-go-stack-two-build-outputs.md` with `git mv`. No draft copy remains in the change directory. Set the status to "Accepted (design decision; implementation and security validation pending)". Rewrite the relative links for the `docs/adr/` location: use `../CONCEPT.md` and `ADR-000N-<name>.md`, as in ADR-0001 to ADR-0004. The owner confirms this status by merging the PR; the PR description must ask for this confirmation.
 - [ ] 1.2 Move `adr-drafts/ADR-0006-user-started-executor-daemon.md` to `docs/adr/ADR-0006-user-started-executor-daemon.md` with `git mv`. No draft copy remains in the change directory. Apply the same status, link rewrite, and owner-confirmation protocol.
 
 ## 2. Documentation updates
@@ -13,7 +13,7 @@
 
 ## 3. Follow-up issue creation
 
-- [ ] 3.1 Create the WebAuthn owner-presence spike issue (open question 1): platform and browser coverage; fail-closed fallback without a platform authenticator; `clientDataJSON` origin binding for local origins that share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the plan-approval step.
+- [ ] 3.1 Create the WebAuthn owner-presence spike issue (open question 1): platform and roaming authenticator coverage; fail-closed fallback without an available authenticator (platform or roaming); `clientDataJSON` origin binding for local origins that share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the plan-approval step.
 - [ ] 3.2 Create the minimum OAuth scope and IAM permission spike issue (open question 2; scratch project; Cloud Run template).
 - [ ] 3.3 Create the Policy Troubleshooter spike issue (open question 3): caller identity and policy-read permissions; folder and organization policy behavior; `actAs` coverage; the forbidden-permission list; the fail-closed result.
 

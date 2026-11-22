@@ -27,7 +27,7 @@ Three CONCEPT constraints drive this decision:
 9. Implement guardrail checks (scope, permission, plan, lifecycle, cost) as hand-written typed checks against the validated plan. Do not embed a policy language such as OPA/Rego.
 10. Embed the approval UI as static assets inside `kipferd`. The user machine needs no Node runtime or separate UI server.
 11. Ship signed release binaries (mechanism to be fixed before the first public release). Document installation outside agent-writable paths, for example `/usr/local/bin`.
-12. Harden the `kipferd` network configuration: it ignores proxy and custom CA environment variables and uses a fixed, documented network configuration. This removes an agent-controlled environment influence on privileged traffic.
+12. Harden the `kipferd` runtime environment: it reads no configuration from the inherited environment (proxy, custom CA, Go runtime variables such as `GOTRACEBACK`) and resets its core-dump limit at startup. It uses a fixed, documented network configuration. This removes an agent-controlled environment influence on privileged traffic.
 
 ## Consequences
 
@@ -63,5 +63,5 @@ Three CONCEPT constraints drive this decision:
 - Dependency review: `go list -m all` output is reviewed and justified; no module introduces dynamic loading or an interpreter.
 - Digest determinism: the same plan produces the same digest across platforms and repeated runs.
 - Audit chain verification detects tampering and reordering; security documents state the same-user rewrite limit.
-- Privileged traffic ignores hostile proxy and CA environment variables.
+- Privileged traffic and core-dump behavior ignore hostile environment variables, including Go runtime variables.
 - Credential exposure: scans of responses, logs, SQLite content, and crash artifacts find no token or key material, per ADR-0003 validation.
