@@ -13,9 +13,9 @@
 
 ## 3. Follow-up issue creation
 
-- [ ] 3.1 Create the WebAuthn owner-presence spike issue (open question 1): platform and roaming authenticator coverage; fail-closed fallback without an available authenticator (platform or roaming); `clientDataJSON` origin binding for local origins that share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the plan-approval step.
-- [ ] 3.2 Create the minimum OAuth scope and IAM permission spike issue (open question 2; scratch project; Cloud Run template).
-- [ ] 3.3 Create the Policy Troubleshooter spike issue (open question 3): caller identity and policy-read permissions; folder and organization policy behavior; `actAs` coverage; the forbidden-permission list; the fail-closed result.
+- [x] 3.1 Create the WebAuthn owner-presence spike issue (open question 1): platform and roaming authenticator coverage; fail-closed fallback without an available authenticator (platform or roaming); `clientDataJSON` origin binding for local origins that share the RP ID `localhost`; the owner authenticator enrollment procedure; interaction with the plan-approval step.
+- [x] 3.2 Create the minimum OAuth scope and IAM permission spike issue (open question 2; scratch project; Cloud Run template).
+- [x] 3.3 Create the Policy Troubleshooter spike issue (open question 3): caller identity and policy-read permissions; folder and organization policy behavior; `actAs` coverage; the forbidden-permission list; the fail-closed result.
 
 ## 4. Validation
 
