@@ -1,6 +1,6 @@
 # Kipfer — Product Concept
 
-**Version:** 0.5 (design baseline)  
+**Version:** 0.6 (design baseline)  
 **Date:** 2026-11-22  
 **Status:** Concept. Not an implementation specification.
 
@@ -172,10 +172,10 @@ A local sandbox, AWS, DigitalOcean, Cloudflare, multi-provider cost estimates, a
 ## 9. Open technical questions
 
 - How can the browser approval prove an independent owner action when the agent can send local HTTP requests? **Status:** [ADR-0006](adr/ADR-0006-user-started-executor-daemon.md) selects WebAuthn user verification as the candidate owner-presence mechanism. A spike is planned. The approval-mechanism ADR follows the spike.
-- What are the minimum OAuth scopes and bootstrap IAM permissions for the first supported template? **Status:** A spike is planned. It runs on a scratch project against the Cloud Run template. The minimum scope and permission list is pending.
-- How can the executor validate effective permissions, inherited roles, and impersonation paths? **Status:** [ADR-0005](adr/ADR-0005-go-stack-two-build-outputs.md) selects the Policy Troubleshooter API as the candidate. A spike is planned. Permission checks fail closed until a design is validated.
+- What are the minimum OAuth scopes and bootstrap IAM permissions for the first supported template? **Status:** A spike is planned. The spike will run on a scratch project against the Cloud Run template. The minimum scope and permission list is pending.
+- How can the executor validate effective permissions, inherited roles, and impersonation paths? **Status:** [ADR-0005](adr/ADR-0005-go-stack-two-build-outputs.md) selects the Policy Troubleshooter API as the candidate. A spike is planned. Permission checks must fail closed until a design is validated.
 - How do we install trusted executables and resource templates outside an agent-writable workspace? **Status:** Partially addressed by [ADR-0005](adr/ADR-0005-go-stack-two-build-outputs.md). It records the signed two-binary distribution (`kipfer`, `kipferd`) with templates compiled into `kipferd`. The release-signing mechanism is pending.
-- How do we handle a long-running operation after the short-lived token expires? **Status:** Narrowed by template selection. The first template is one Cloud Run service. Its deployment fits the short token target. Longer operations stay out of the MVP.
+- How do we handle a long-running operation after the short-lived token expires? **Status:** Narrowed by template selection. The first template is one Cloud Run service. Its deployment is expected to fit the short token target. Longer operations stay out of the MVP.
 - What evidence proves cloud-side revocation after IAM propagation?
 - What Google OAuth app verification steps apply before public distribution?
 
