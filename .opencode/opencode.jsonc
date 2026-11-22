@@ -1,0 +1,33 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // kipfer conveyor gates. Repository rules live in AGENTS.md (OpenSpec flow, ADRs, STE).
+  "permissions": [
+    // Merge is a human-only decision
+    { "action": "shell", "resource": "gh pr merge*", "effect": "ask" },
+    { "action": "shell", "resource": "gh pr merge *", "effect": "ask" },
+    // Direct push to main is forbidden (policy level)
+    { "action": "shell", "resource": "git push origin main", "effect": "deny" },
+    { "action": "shell", "resource": "git push origin main *", "effect": "deny" },
+    { "action": "shell", "resource": "git push origin HEAD:main", "effect": "deny" }
+  ],
+  "agents": {
+    "spec-reviewer": {
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+        { "action": "shell", "resource": "git push*", "effect": "deny" },
+        { "action": "shell", "resource": "git push *", "effect": "deny" },
+        { "action": "shell", "resource": "gh pr *", "effect": "deny" },
+        { "action": "shell", "resource": "gh issue *", "effect": "deny" }
+      ]
+    },
+    "qa": {
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+        { "action": "shell", "resource": "git push*", "effect": "deny" },
+        { "action": "shell", "resource": "git push *", "effect": "deny" },
+        { "action": "shell", "resource": "gh pr *", "effect": "deny" },
+        { "action": "shell", "resource": "gh issue *", "effect": "deny" }
+      ]
+    }
+  }
+}
