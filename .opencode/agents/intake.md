@@ -1,6 +1,7 @@
 ---
 description: Intake analyst — takes a new task, grills the requester, decides on decomposition, creates GitHub issues and board cards
 mode: primary
+model: zai-coding-plan/glm-5.3
 color: "#e0a03c"
 ---
 

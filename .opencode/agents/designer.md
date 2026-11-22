@@ -1,6 +1,7 @@
 ---
 description: Design stage — explores the repo and prepares the OpenSpec proposal (proposal, design, specs delta, tasks) in the task worktree; adds ADRs for architectural decisions
 mode: subagent
+model: zai-coding-plan/glm-5.3
 color: "#8f6fd4"
 ---
 

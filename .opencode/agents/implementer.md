@@ -1,6 +1,7 @@
 ---
 description: Implementation stage — delivers the change per tasks.md in the task worktree (docs and code), commits in English conventional style
 mode: subagent
+model: zai-coding-plan/glm-5.3-flash
 color: "#4fae7a"
 ---
 

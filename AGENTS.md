@@ -14,13 +14,15 @@ All agent work runs through the OpenCode conveyor (`.opencode/`). Roles:
 
 | Agent | Mode | Model | Responsibility |
 |---|---|---|---|
-| `intake` | primary | inherited | Task intake: analysis, requester interview, decomposition into GitHub issues and board cards |
-| `producer` | primary | inherited | Orchestrator: board states, subagent launches, rework loops, verdict publication |
-| `designer` | subagent | inherited | Explore plus OpenSpec proposal (proposal, design, specs, tasks) and ADR drafts |
+| `intake` | primary | GLM-5.3 | Task intake: analysis, requester interview, decomposition into GitHub issues and board cards |
+| `producer` | primary | GLM-5.3 | Orchestrator: board states, subagent launches, rework loops, verdict publication |
+| `designer` | subagent | GLM-5.3 | Explore plus OpenSpec proposal (proposal, design, specs, tasks) and ADR drafts |
 | `spec-reviewer` | subagent | GLM-5.3 | Spec gate before implementation and QG3. Read-only |
-| `implementer` | subagent | inherited | Delivery per tasks.md in the task worktree |
+| `implementer` | subagent | GLM-5.3-flash | Delivery per tasks.md in the task worktree |
 | `qa` | subagent | GLM-5.3 | QG1 and QG2, spec validation, document checks. Read-only |
-| `pr-reviewer` | subagent | inherited | Finalizer: sync and archive in the branch, PR creation |
+| `pr-reviewer` | subagent | GLM-5.3-flash | Finalizer: sync and archive in the branch, PR creation |
+
+**Model policy:** planning and validation (`intake`, `producer`, `designer`, `spec-reviewer`, `qa`) run on the most capable model; implementation and finalization (`implementer`, `pr-reviewer`) run on the fast model. When a stronger provider is configured, raise the planning and validation tier first.
 
 Start with `opencode` in the repository root, then pick `intake` (new task) or `producer` (run the pool).
 

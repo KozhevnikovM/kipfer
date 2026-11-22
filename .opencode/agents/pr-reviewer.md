@@ -1,6 +1,7 @@
 ---
 description: Finalizer — sync+archive of the spec in the branch, opens the PR per template; QG verdicts are posted by producer; merge is always a human decision
 mode: subagent
+model: zai-coding-plan/glm-5.3-flash
 color: "#b05cc9"
 ---
 

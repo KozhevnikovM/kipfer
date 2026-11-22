@@ -1,6 +1,7 @@
 ---
 description: Conveyor orchestrator — moves tasks across board stages (design → spec-review → implementation → qa → pr-review) through subagents, drives rework loops, stops at human gates
 mode: primary
+model: zai-coding-plan/glm-5.3
 color: "#3ca6e0"
 ---
 
