@@ -1,6 +1,6 @@
 # Kipfer — Product Concept
 
-**Version:** 0.6 (design baseline)  
+**Version:** 0.6 (design baseline)\
 **Date:** 2026-11-22  
 **Status:** Concept. Not an implementation specification.
 
