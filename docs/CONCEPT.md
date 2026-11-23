@@ -1,10 +1,10 @@
 # Kipfer — Product Concept
 
-**Version:** 0.5 (design baseline)  
+**Version:** 0.6 (design baseline)\
 **Date:** 2026-11-22  
 **Status:** Concept. Not an implementation specification.
 
-**Accepted decisions:** [ADR-0001](adr/ADR-0001-local-executor-bootstrap.md), [ADR-0002](adr/ADR-0002-per-operation-browser-authorization.md), [ADR-0003](adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](adr/ADR-0004-google-oauth-application.md).
+**Accepted decisions:** [ADR-0001](adr/ADR-0001-local-executor-bootstrap.md), [ADR-0002](adr/ADR-0002-per-operation-browser-authorization.md), [ADR-0003](adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md), [ADR-0004](adr/ADR-0004-google-oauth-application.md), [ADR-0005](adr/ADR-0005-go-stack-two-build-outputs.md), [ADR-0006](adr/ADR-0006-user-started-executor-daemon.md).
 
 ## 1. Purpose
 
@@ -83,6 +83,8 @@ Selected Google Cloud project
     |-- separate workload runtime identities
 ```
 
+The implementation stack and process model are decided in [ADR-0005](adr/ADR-0005-go-stack-two-build-outputs.md) and [ADR-0006](adr/ADR-0006-user-started-executor-daemon.md). One Go codebase builds two binaries. `kipfer` is a client-only CLI for the agent. `kipferd` is the daemon with all privileged logic. The user installs and starts `kipferd` manually in the MVP. The daemon runs only constrained loopback listeners: the agent API, the OAuth callback handler, and the approval UI. Privileged execution has no listener. These are design decisions. Implementation and security validation are pending.
+
 Kipfer stores **non-secret metadata only**: target project, plan digest, approval record, grant expiry, execution status, and audit references. It must not persist user OAuth refresh tokens, service-account JSON keys, or access tokens.
 
 The executor must not provide generic `gcloud`, `exec`, `get-token`, or unrestricted Terraform execution with cloud privileges. It must not run agent-provided provider plugins or shell scripts under the privileged identity.
@@ -159,7 +161,7 @@ The MVP must provide:
 2. A local trusted executor with an unprivileged agent interface.
 3. A browser sign-in and separate user approval for each privileged operation.
 4. A reviewed project-scoped IAM bootstrap with a restricted deployment service account.
-5. One fixed resource template; no generic IaC execution.
+5. One fixed resource template, a Cloud Run service; no generic IaC execution.
 6. No durable cloud credentials.
 7. Cloud-side expiry within 10 days and a manual revocation procedure.
 8. Positive and negative tests for scope, impersonation, approval replay, grant expiry, and token exposure.
@@ -169,11 +171,11 @@ A local sandbox, AWS, DigitalOcean, Cloudflare, multi-provider cost estimates, a
 
 ## 9. Open technical questions
 
-- How can the browser approval prove an independent owner action when the agent can send local HTTP requests?
-- What are the minimum OAuth scopes and bootstrap IAM permissions for the first supported template?
-- How can the executor validate effective permissions, inherited roles, and impersonation paths?
-- How do we install trusted executables and resource templates outside an agent-writable workspace?
-- How do we handle a long-running operation after the short-lived token expires?
+- How can the browser approval prove an independent owner action when the agent can send local HTTP requests? **Status:** [ADR-0006](adr/ADR-0006-user-started-executor-daemon.md) selects WebAuthn user verification as the candidate owner-presence mechanism. A spike is planned. The approval-mechanism ADR follows the spike.
+- What are the minimum OAuth scopes and bootstrap IAM permissions for the first supported template? **Status:** A spike is planned. The spike will run on a scratch project against the Cloud Run template. The minimum scope and permission list is pending.
+- How can the executor validate effective permissions, inherited roles, and impersonation paths? **Status:** [ADR-0005](adr/ADR-0005-go-stack-two-build-outputs.md) selects the Policy Troubleshooter API as the candidate. A spike is planned. Permission checks must fail closed until a design is validated.
+- How do we install trusted executables and resource templates outside an agent-writable workspace? **Status:** Partially addressed by [ADR-0005](adr/ADR-0005-go-stack-two-build-outputs.md). It records the signed two-binary distribution (`kipfer`, `kipferd`) with templates compiled into `kipferd`. The release-signing mechanism is pending.
+- How do we handle a long-running operation after the short-lived token expires? **Status:** Narrowed by template selection. The first template is one Cloud Run service. Its deployment is expected to fit the short token target. Longer operations stay out of the MVP.
 - What evidence proves cloud-side revocation after IAM propagation?
 - What Google OAuth app verification steps apply before public distribution?
 

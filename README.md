@@ -17,6 +17,8 @@ Kipfer starts with **Google Cloud**. The architecture is agent-agnostic and can 
 5. The local executor bootstraps or uses a limited deployment service account and runs the approved operation.
 6. Temporary credentials are discarded. The next privileged change needs a new browser flow and approval.
 
+You install the `kipferd` daemon and start it in a terminal; the first resource template is Cloud Run. See [ADR-0005](docs/adr/ADR-0005-go-stack-two-build-outputs.md) and [ADR-0006](docs/adr/ADR-0006-user-started-executor-daemon.md).
+
 **Important:** Google OAuth scopes do not restrict a user token to one GCP project. Kipfer must enforce project scope through restricted cloud IAM and the trusted executor. This is a design requirement, not a verified security guarantee yet.
 
 ## Core principles
@@ -39,6 +41,8 @@ Kipfer starts with **Google Cloud**. The architecture is agent-agnostic and can 
 - [ADR-0002 — Browser Authorization for Every Privileged Operation](docs/adr/ADR-0002-per-operation-browser-authorization.md)
 - [ADR-0003 — Ephemeral Credentials and User-Managed Agent Isolation](docs/adr/ADR-0003-ephemeral-credentials-user-managed-sandbox.md)
 - [ADR-0004 — Google OAuth Desktop Application](docs/adr/ADR-0004-google-oauth-application.md)
+- [ADR-0005 — Go Stack with Two Build Outputs](docs/adr/ADR-0005-go-stack-two-build-outputs.md)
+- [ADR-0006 — User-Started Executor Daemon with Constrained Listeners](docs/adr/ADR-0006-user-started-executor-daemon.md)
 
 ## Security and MVP scope
 

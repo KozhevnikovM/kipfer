@@ -1,0 +1,9 @@
+schema: spec-driven
+
+context: |
+  Language: Simplified Technical English (STE) for all artifacts.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Repository status: concept and security design (documentation only, no
+  source code yet). Architecture decisions live in docs/adr/ with the
+  ADR-NNNN-short-topic.md pattern. Security documents must distinguish
+  design requirements from implemented or verified behavior.
