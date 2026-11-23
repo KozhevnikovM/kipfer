@@ -36,7 +36,7 @@ The executor SHALL run only these local listeners, all bound to loopback: the ag
 
 ### Requirement: Separated daemon entry point
 
-The agent-facing CLI SHALL be a client-only build with no daemon code. The daemon SHALL be a separate build output that the user installs and starts. The executor SHALL allow at most one daemon instance per user account. The design cannot distinguish a user-started daemon from an agent-started daemon process under the same OS account. The approval and owner-presence controls are the boundary for that case, and agent isolation stays user-managed per ADR-0003.
+The agent-facing CLI SHALL be a client-only build with no daemon code. The daemon SHALL be a separate build output that the user installs and starts. The executor SHALL allow at most one daemon instance per user account. The design cannot distinguish a user-started daemon from an agent-started daemon process under the same OS account. For that case, the single-instance rule and the owner-presence mechanism only reduce the attack paths. They are not a trust boundary. User-managed agent isolation is the trust boundary for that case (ADR-0003).
 
 #### Scenario: Agent runs the client binary
 
@@ -55,12 +55,17 @@ The agent-facing CLI SHALL be a client-only build with no daemon code. The daemo
 
 ### Requirement: Fail-safe approval sessions
 
-An approval session SHALL exist only in the memory of the daemon process. Session identifiers, OAuth state values, and PKCE verifiers SHALL never persist to disk. A daemon restart MUST invalidate all pending approval sessions and MUST NOT resume an interrupted privileged operation. After a restart, the executor SHALL record the interrupted operation as unverified in the non-secret execution status.
+An approval session SHALL exist only in the memory of the daemon process. Session identifiers, OAuth state values, and PKCE verifiers SHALL never persist to disk. A daemon restart MUST invalidate all pending approval sessions. The executor MUST NOT resume an interrupted privileged operation after a restart. The cloud provider can complete an operation that it has already accepted. Kipfer cannot stop that operation. When the provider returns a cloud-side operation identifier, the executor SHALL record it in the non-secret execution status. After a restart, the executor SHALL record the interrupted operation as `unverified` in that status. Before a repeated mutation, the executor SHALL read the state of the cloud-side operation or of the target resource in the approved project. It SHALL show that state to the user. A repeated mutation is a new privileged operation and SHALL require a new owner approval.
 
 #### Scenario: Daemon restarts during an approved operation
 
 - **WHEN** the daemon process stops and starts again while a privileged operation runs
-- **THEN** the operation stops, the execution status records the operation as unverified, no credential survives in memory or on disk, and a new owner approval is required before any retry
+- **THEN** the executor stops local execution, records the operation as `unverified`, keeps no credential in memory or on disk, and does not resume the operation
+
+#### Scenario: Agent submits the same plan after an unverified operation
+
+- **WHEN** the agent submits the same plan again after an operation was recorded as `unverified`
+- **THEN** the executor reads the cloud-side operation or resource state in the approved project before any mutation, shows that state to the user, and requires a new owner approval before it sends the mutation
 
 ### Requirement: No credentials through the agent boundary
 

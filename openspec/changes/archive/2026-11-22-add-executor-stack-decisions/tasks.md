@@ -21,3 +21,8 @@
 
 - [x] 4.1 Run `openspec validate --strict` on this change and fix reported issues.
 - [x] 4.2 Verify every relative link in touched documents resolves; confirm no document states unimplemented behavior as implemented or guarantees unverified security properties; run `git diff --check`.
+
+## 5. Owner review rework (PR #7)
+
+- [x] 5.1 Align the requirement "Separated daemon entry point" with ADR-0006: for the same-account case, the single-instance rule and the owner-presence mechanism only reduce attack paths; user-managed agent isolation (ADR-0003) is the trust boundary. Apply the same text to the delta and the main spec, to design D2, and to ADR-0006 item 5.
+- [x] 5.2 Extend the requirement "Fail-safe approval sessions": a restart stops local execution and the executor never resumes the operation; the cloud provider can complete an accepted operation; record the result as `unverified` and the cloud-side operation identifier when returned; before a repeated mutation, read and show the cloud-side operation or resource state; the repeated mutation requires a new owner approval. Add the scenario "Agent submits the same plan after an unverified operation". Align design D2 and ADR-0006 item 6, its limits, and its validation.
